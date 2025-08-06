@@ -18,17 +18,18 @@ jobs:
 
     - name: Download and install sing-Box
       run: |
-        curl -fsSL https://sing-box.app/install.sh | sh
-          if [ ! -f sing-box ]; then
-            echo "Sing-Box not found"
-            exit 1
-          fi
+        run: |
+        curl -Lo sing-box.tar.gz https://github.com/SagerNet/sing-box/releases/download/v1.12.0/sing-box-1.12.0-linux-amd64.tar.gz
+        tar -xzf sing-box.tar.gz
+        chmod +x sing-box-1.12.0-linux-amd64/sing-box
+        sudo mv sing-box-1.12.0-linux-amd64/sing-box /usr/local/bin/sing-box
+        sing-box version
 
     - name: Check if custom_direct.json was changed
       id: config_changed
       run: echo "::set-output name=changed::$(git diff --name-only HEAD^ HEAD -- custom_direct.json)"
 
-    - name: Compile Rules
+    - name: Compile Sing-Box Rules
       if: steps.config_changed.outputs.changed == 'custom_direct.json'
       run: |
         ./sing-box rule-set compile custom_direct.json --output config.srs
