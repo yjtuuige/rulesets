@@ -16,17 +16,15 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v3
 
-    - name: Download Sing-Box
+    - name: Download and install sing-Box
       run: |
-        wget https://github.com/SagerNet/sing-box/releases/download/v1.12.0/sing-box-1.12.0-linux-amd64.tar.gz
-        tar -xzf sing-box-1.12.0-linux-amd64.tar.gz
-        chmod +x sing-box
+        curl -fsSL https://sing-box.app/install.sh | sh
 
     - name: Check if custom_direct.json was changed
       id: config_changed
       run: echo "::set-output name=changed::$(git diff --name-only HEAD^ HEAD -- custom_direct.json)"
 
-    - name: Compile Sing-Box Rules
+    - name: Compile Rules
       if: steps.config_changed.outputs.changed == 'custom_direct.json'
       run: |
         ./sing-box rule-set compile custom_direct.json --output config.srs
