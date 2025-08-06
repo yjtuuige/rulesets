@@ -20,9 +20,14 @@ jobs:
       run: |
         curl -Lo sing-box.tar.gz https://github.com/SagerNet/sing-box/releases/download/v1.12.0/sing-box-1.12.0-linux-amd64.tar.gz
         tar -xzf sing-box.tar.gz
-        chmod +x sing-box-1.12.0-linux-amd64/sing-box
-        sudo mv sing-box-1.12.0-linux-amd64/sing-box /usr/local/bin/sing-box
-        sing-box version
+        if [ -f sing-box-1.12.0-linux-amd64/sing-box ]; then
+          chmod +x sing-box-1.12.0-linux-amd64/sing-box
+          sudo mv sing-box-1.12.0-linux-amd64/sing-box /usr/local/bin/sing-box
+          sing-box version
+        else
+          echo "sing-box binary not found"
+          exit 1
+        fi
 
     - name: Check if custom_direct.json was changed
       id: config_changed
@@ -31,9 +36,9 @@ jobs:
     - name: Compile Sing-Box Rules
       if: steps.config_changed.outputs.changed == 'custom_direct.json'
       run: |
-        ./sing-box rule-set compile custom_direct.json --output config.srs
+        sing-box rule-set compile custom_direct.json --output config.srs
         git config --local user.email "3436707227@qq.com"
         git config --local user.name "yjtuuige"
-        git add custom_direct.srs
+        git add config.srs
         git commit -m "Compiled rules"
         git push
