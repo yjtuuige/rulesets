@@ -1,0 +1,8 @@
+{
+  "version": 2,
+  "rules": [
+    {
+      "domain_regex": "^www\\.kimi\\.com(\\.[^.\\s]+)*$"
+    }
+  ]
+}
