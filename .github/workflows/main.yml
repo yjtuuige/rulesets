@@ -19,6 +19,10 @@ jobs:
     - name: Download and install sing-Box
       run: |
         curl -fsSL https://sing-box.app/install.sh | sh
+          if [ ! -f sing-box ]; then
+            echo "Sing-Box not found"
+            exit 1
+          fi
 
     - name: Check if custom_direct.json was changed
       id: config_changed
