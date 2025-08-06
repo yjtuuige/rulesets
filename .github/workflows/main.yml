@@ -1,0 +1,37 @@
+name: Compile Rules
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'custom_direct.json'  # 仅当custom_direct.json文件发生变化时触发
+  workflow_dispatch:  # 允许手动触发
+
+jobs:
+  build:
+    runs-on: ubuntu-latest  # 使用最新的Ubuntu环境
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Download Sing-Box
+      run: |
+        wget https://github.com/SagerNet/sing-box/releases/download/v1.12.0/sing-box-1.12.0-linux-amd64.tar.gz
+        tar -xzf sing-box-1.12.0-linux-amd64.tar.gz
+        chmod +x sing-box
+
+    - name: Check if custom_direct.json was changed
+      id: config_changed
+      run: echo "::set-output name=changed::$(git diff --name-only HEAD^ HEAD -- custom_direct.json)"
+
+    - name: Compile Sing-Box Rules
+      if: steps.config_changed.outputs.changed == 'custom_direct.json'
+      run: |
+        ./sing-box rule-set compile custom_direct.json --output config.srs
+        git config --local user.email "3436707227@qq.com"
+        git config --local user.name "yjtuuige"
+        git add custom_direct.srs
+        git commit -m "Compiled Sing-Box rules"
+        git push
