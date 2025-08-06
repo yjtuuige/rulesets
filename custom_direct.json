@@ -2,7 +2,14 @@
   "version": 2,
   "rules": [
     {
-      "domain_regex": "^www\\.kimi\\.com(\\.[^.\\s]+)*$"
+      "domain_regex": [
+        "^www\\.kimi\\.com(\\.[^.\\s]+)*$",
+        "^cn\\.vuejs\\.org(/.*)?$",
+        "^vueschool\\.io(/.*)?$",
+        "^automation\\.vuejs\\.org(/.*)?$",
+        "^play\\.vuejs\\.org(/.*)?$",
+        "^vuejs\\.org(/.*)?$"
+      ]
     }
   ]
 }
