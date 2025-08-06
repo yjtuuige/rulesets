@@ -33,5 +33,5 @@ jobs:
         git config --local user.email "3436707227@qq.com"
         git config --local user.name "yjtuuige"
         git add custom_direct.srs
-        git commit -m "Compiled Sing-Box rules"
+        git commit -m "Compiled rules"
         git push
