@@ -6,7 +6,8 @@
         "^www\\.kimi\\.com(\\.[^.\\s]+)*$",
         "^cn\\.vuejs\\.org(/.*)?$",
         "^vueschool\\.io(/.*)?$",
-        "^automation\\.vuejs\\.org(/.*)?$",        
+        "^automation\\.vuejs\\.org(/.*)?$",
+        "^automation\\.vuejs\\.org(/.*)?$",  
         "^play\\.vuejs\\.org(/.*)?$"
       ]
     }
