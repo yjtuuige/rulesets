@@ -8,7 +8,6 @@
         "^vueschool\\.io(/.*)?$",
         "^automation\\.vuejs\\.org(/.*)?$",
         "^play\\.vuejs\\.org(/.*)?$",
-        "^vuejs\\.org(/.*)?$",
          "^vuejs\\.org(/.*)?$"
       ]
     }
