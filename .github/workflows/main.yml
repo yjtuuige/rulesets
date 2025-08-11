@@ -1,0 +1,60 @@
+name: Compile Rules
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'custom_direct.json'  # 仅当 custom_direct.json 文件发生变化时触发
+  workflow_dispatch:  # 允许手动触发
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Download and install sing-box
+        run: |
+          curl -Lo sing-box.tar.gz https://github.com/SagerNet/sing-box/releases/download/v1.12.0/sing-box-1.12.0-linux-amd64.tar.gz
+          tar -xzf sing-box.tar.gz
+          chmod +x sing-box-1.12.0-linux-amd64/sing-box
+          sudo mv sing-box-1.12.0-linux-amd64/sing-box /usr/local/bin/sing-box
+          sing-box version || { echo "sing-box installation failed"; exit 1; }
+
+      - name: Check if custom_direct.json was changed
+        id: config_changed
+        run: |
+          if git diff --name-only HEAD^ HEAD -- custom_direct.json | grep -q custom_direct.json; then
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Compile Sing-Box Rules
+        if: steps.config_changed.outputs.changed == 'true'
+        run: |
+          sing-box rule-set compile custom_direct.json --output custom_direct.srs
+          if [ ! -f custom_direct.srs ]; then
+            echo "Error: custom_direct.srs file was not generated."
+            exit 1
+          else
+            echo "custom_direct.srs file generated successfully."
+          fi
+
+      - name: Commit and push compiled rules
+        if: steps.config_changed.outputs.changed == 'true'
+        run: |
+          git config --local user.email "3436707227@qq.com"
+          git config --local user.name "yjtuuige"
+          git add custom_direct.srs
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "Compiled rules"
+            git push
+          fi
