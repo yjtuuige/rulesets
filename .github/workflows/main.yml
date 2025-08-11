@@ -1,0 +1,74 @@
+name: Compile Rules
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'custom_direct.json'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Set up Git user name and email
+      run: |
+        git config --local user.name "${{ secrets.USERNAME }}"
+        git config --local user.email "${{ secrets.EMAIL }}"
+
+    - name: Download and install sing-box
+      run: |
+        echo "Downloading sing-box..."
+        curl -Lo sing-box.tar.gz https://github.com/SagerNet/sing-box/releases/download/v1.12.0/sing-box-1.12.0-linux-amd64.tar.gz
+        echo "Installing sing-box..."
+        tar -xzf sing-box.tar.gz
+        chmod +x sing-box-1.12.0-linux-amd64/sing-box
+        sudo mv sing-box-1.12.0-linux-amd64/sing-box /usr/local/bin/sing-box
+        echo "sing-box version: $(sing-box version)"
+
+    - name: Check if custom_direct.json exists
+      id: config_exists
+      run: |
+        if [ -f "custom_direct.json" ]; then
+          echo "custom_direct_exists=true" >> "$GITHUB_OUTPUT"
+        else
+          echo "custom_direct_exists=false" >> "$GITHUB_OUTPUT"
+        fi
+
+    - name: Compile Sing-Box Rules
+      if: steps.config_exists.outputs.custom_direct_exists == 'true'
+      run: |
+        echo "Compiling custom_direct.json to custom_direct.srs..."
+        if ! sing-box rule-set compile custom_direct.json --output custom_direct.srs; then
+          echo "Error: Compilation failed"
+          exit 1
+        fi
+        echo "custom_direct.srs file generated successfully."
+        cat custom_direct.srs
+
+    - name: Commit and push compiled rules
+      if: steps.config_exists.outputs.custom_direct_exists == 'true'
+      run: |
+        echo "Adding custom_direct.srs to git..."
+        git add custom_direct.srs
+        echo "Checking git status..."
+        git status
+        if git diff --cached --quiet; then
+          echo "No changes to commit"
+        else
+          echo "Committing changes..."
+          git commit -m "Compiled rules"
+          echo "Pushing changes..."
+          git push
+        fi
+
+    - name: Clean up
+      run: |
+        rm -rf sing-box.tar.gz sing-box-1.12.0-linux-amd64
