@@ -1,0 +1,61 @@
+name: Compile sing-box rules
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '**.json'          # 任意 json 文件变动即触发
+  workflow_dispatch:
+
+jobs:
+  compile:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2          # 需要对比上一次提交
+
+      - name: Install sing-box
+        run: |
+          curl -Lo sing-box.tar.gz https://github.com/SagerNet/sing-box/releases/download/v1.12.0/sing-box-1.12.0-linux-amd64.tar.gz
+          tar -xzf sing-box.tar.gz
+          chmod +x sing-box-*/sing-box
+          sudo mv sing-box-*/sing-box /usr/local/bin/sing-box
+          rm -rf sing-box.tar.gz sing-box-*
+
+      - name: Compile changed JSON files
+        run: |
+          # 获取变动的 json 文件列表
+          changed_json=$(git diff --name-only HEAD~1 HEAD | grep '\.json$' || true)
+          if [ -z "$changed_json" ]; then
+            echo "未检测到 json 文件变动，跳过编译"
+            exit 0
+          fi
+
+          for json in $changed_json; do
+            [ -f "$json" ] || continue          # 文件被删除则跳过
+            srs="${json%.json}.srs"
+            echo "编译 $json → $srs"
+            if sing-box rule-set compile "$json" --output "$srs"; then
+              git add "$srs"
+            else
+              echo "❌ 编译失败：$json"
+              exit 1
+            fi
+          done
+
+      - name: Commit and push
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          if ! git diff --cached --quiet; then
+            git commit -m "Compile sing-box rule-set"
+            git push
+          else
+            echo "🔄 无 SRS 变动，跳过提交"
+          fi
